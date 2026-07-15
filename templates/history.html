@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}My Booking History - StudySpace{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Classroom Bookings</h1>
+        <p class="page-subtitle">View your request history, check approvals, or cancel upcoming bookings.</p>
+    </div>
+    <a href="/classrooms" class="btn btn-primary">Book New Room</a>
+</div>
+
+<div class="section-card">
+    <h2 class="section-title">All Booking Records</h2>
+    {% if bookings %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Classroom</th>
+                        <th>Building Block</th>
+                        <th>Date</th>
+                        <th>Time Interval</th>
+                        <th>Purpose</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                        <tr>
+                            <td>#{{ booking.booking_id }}</td>
+                            <td><strong>Room {{ booking.room_number }}</strong></td>
+                            <td>{{ booking.building }}, Floor {{ booking.floor }}</td>
+                            <td>{{ booking.booking_date }}</td>
+                            <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+                            <td>{{ booking.purpose }}</td>
+                            <td>
+                                <span class="badge badge-{{ booking.status.lower() }}">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if booking.status == 'Pending' or booking.status == 'Approved' %}
+                                    <a href="/bookings/cancel/{{ booking.booking_id }}" class="btn btn-danger btn-sm confirm-cancel">Cancel</a>
+                                {% else %}
+                                    <span style="font-size: 0.85rem; color: var(--text-muted);">No action</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-title">No Bookings Found</div>
+            <p>You haven't requested any classroom bookings yet. Find an available classroom and make a booking!</p>
+            <a href="/classrooms" class="btn btn-primary" style="margin-top: 1.5rem;">Find a Classroom</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

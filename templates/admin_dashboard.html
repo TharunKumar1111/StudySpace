@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - StudySpace{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Admin Dashboard</h1>
+        <p class="page-subtitle">Manage campus classrooms, recurring timetables, student accounts, and study bookings.</p>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">🏫</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.total_classrooms }}</div>
+            <div class="stat-label">Total Classrooms</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon secondary">👥</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">📅</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.total_bookings }}</div>
+            <div class="stat-label">Total Bookings</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">🟢</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.available_rooms }}</div>
+            <div class="stat-label">Available Rooms</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon danger">🔴</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.occupied_rooms }}</div>
+            <div class="stat-label">Occupied / Maint.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="tab-container">
+    <div class="tabs">
+        <button class="tab-btn {% if not active_tab or active_tab == 'overview' %}active{% endif %}" data-tab="overview">
+            📅 Bookings & Approvals
+        </button>
+        <button class="tab-btn {% if active_tab == 'classrooms' %}active{% endif %}" data-tab="classrooms">
+            🏫 Manage Classrooms
+        </button>
+        <button class="tab-btn {% if active_tab == 'timetable' %}active{% endif %}" data-tab="timetable">
+            🕒 Manage Timetables
+        </button>
+        <button class="tab-btn {% if active_tab == 'students' %}active{% endif %}" data-tab="students">
+            👥 Registered Students
+        </button>
+    </div>
+</div>
+
+<!-- ==================== TAB 1: BOOKING APPROVALS ==================== -->
+<div id="overview" class="tab-content {% if not active_tab or active_tab == 'overview' %}active{% endif %}">
+    <div class="section-card">
+        <h2 class="section-title">All Student Booking Requests</h2>
+        {% if bookings %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Student</th>
+                            <th>Classroom</th>
+                            <th>Building</th>
+                            <th>Date</th>
+                            <th>Time Slot</th>
+                            <th>Purpose</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                            <tr>
+                                <td>#{{ booking.booking_id }}</td>
+                                <td><strong>{{ booking.user_name }}</strong><br><span style="font-size: 0.8rem; color: var(--text-muted);">{{ booking.user_email }}</span></td>
+                                <td><strong>Room {{ booking.room_number }}</strong></td>
+                                <td>{{ booking.building }}</td>
+                                <td>{{ booking.booking_date }}</td>
+                                <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+                                <td>{{ booking.purpose }}</td>
+                                <td>
+                                    <span class="badge badge-{{ booking.status.lower() }}">
+                                        {{ booking.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if booking.status == 'Pending' %}
+                                        <div class="admin-actions">
+                                            <a href="/admin/booking/{{ booking.booking_id }}/approve" class="btn btn-primary btn-sm" style="background-color: var(--success);">Approve</a>
+                                            <a href="/admin/booking/{{ booking.booking_id }}/reject" class="btn btn-danger btn-sm">Reject</a>
+                                        </div>
+                                    {% else %}
+                                        <span style="font-size: 0.85rem; color: var(--text-muted);">Resolved</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📅</div>
+                <div class="empty-state-title">No Bookings Registered</div>
+                <p>No classroom booking records have been created in the database yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ==================== TAB 2: CLASSROOM CRUD ==================== -->
+<div id="classrooms" class="tab-content {% if active_tab == 'classrooms' %}active{% endif %}">
+    <div class="dashboard-layout">
+        <!-- Classroom Table -->
+        <div class="dashboard-column">
+            <div class="section-card">
+                <h2 class="section-title">Active Classrooms</h2>
+                {% if classrooms %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Block</th>
+                                    <th>Floor</th>
+                                    <th>Cap.</th>
+                                    <th>Type</th>
+                                    <th>Amenities</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in classrooms %}
+                                    <tr>
+                                        <td><strong>{{ room.room_number }}</strong></td>
+                                        <td>{{ room.building }}</td>
+                                        <td>{{ room.floor }}</td>
+                                        <td>{{ room.capacity }}</td>
+                                        <td>{{ room.room_type }}</td>
+                                        <td>
+                                            <div style="display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.8rem;">
+                                                <span>📹 Projector: {{ 'Yes' if room.projector else 'No' }}</span>
+                                                <span>📋 Whiteboard: {{ 'Yes' if room.whiteboard else 'No' }}</span>
+                                                <span>❄ AC: {{ 'Yes' if room.ac else 'No' }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{{ room.status.lower() }}">
+                                                {{ room.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="admin-actions">
+                                                <a href="/admin_dashboard?active_tab=classrooms&edit_room_id={{ room.room_id }}" class="btn btn-outline btn-sm">Edit</a>
+                                                <a href="/admin/classroom/delete/{{ room.room_id }}" class="btn btn-danger btn-sm confirm-delete">Delete</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-muted);">No classrooms registered in the system yet.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Add / Edit Form -->
+        <div class="dashboard-sidebar">
+            <div class="section-card">
+                {% if edit_classroom %}
+                    <h2 class="section-title">Edit Classroom (Room {{ edit_classroom.room_number }})</h2>
+                    <form action="/admin/classroom/edit/{{ edit_classroom.room_id }}" method="POST">
+                        <div class="form-group">
+                            <label for="edit_room_number" class="form-label">Room Number</label>
+                            <input type="text" id="edit_room_number" name="room_number" class="form-control" value="{{ edit_classroom.room_number }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit_building" class="form-label">Building Block</label>
+                            <input type="text" id="edit_building" name="building" class="form-control" value="{{ edit_classroom.building }}" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit_floor" class="form-label">Floor</label>
+                                <input type="number" id="edit_floor" name="floor" class="form-control" value="{{ edit_classroom.floor }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_capacity" class="form-label">Capacity</label>
+                                <input type="number" id="edit_capacity" name="capacity" class="form-control" value="{{ edit_classroom.capacity }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit_room_type" class="form-label">Room Type</label>
+                            <select id="edit_room_type" name="room_type" class="form-control" required>
+                                <option value="Lecture Hall" {% if edit_classroom.room_type == 'Lecture Hall' %}selected{% endif %}>Lecture Hall</option>
+                                <option value="Seminar Room" {% if edit_classroom.room_type == 'Seminar Room' %}selected{% endif %}>Seminar Room</option>
+                                <option value="Discussion Room" {% if edit_classroom.room_type == 'Discussion Room' %}selected{% endif %}>Discussion Room</option>
+                                <option value="Computer Lab" {% if edit_classroom.room_type == 'Computer Lab' %}selected{% endif %}>Computer Lab</option>
+                                <option value="Electronics Lab" {% if edit_classroom.room_type == 'Electronics Lab' %}selected{% endif %}>Electronics Lab</option>
+                                <option value="Auditorium" {% if edit_classroom.room_type == 'Auditorium' %}selected{% endif %}>Auditorium</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_status" class="form-label">Operational Status</label>
+                            <select id="edit_status" name="status" class="form-control" required>
+                                <option value="Available" {% if edit_classroom.status == 'Available' %}selected{% endif %}>Available</option>
+                                <option value="Occupied" {% if edit_classroom.status == 'Occupied' %}selected{% endif %}>Occupied</option>
+                                <option value="Maintenance" {% if edit_classroom.status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <span class="form-label">Amenities</span>
+                            <div class="filter-options">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="projector" value="1" {% if edit_classroom.projector %}checked{% endif %}>
+                                    <span>Projector Available</span>
+                                </label>
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="whiteboard" value="1" {% if edit_classroom.whiteboard %}checked{% endif %}>
+                                    <span>Whiteboard Available</span>
+                                </label>
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="ac" value="1" {% if edit_classroom.ac %}checked{% endif %}>
+                                    <span>AC Room</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                            <button type="submit" class="btn btn-primary" style="flex: 1;">Save Changes</button>
+                            <a href="/admin_dashboard?active_tab=classrooms" class="btn btn-outline">Cancel</a>
+                        </div>
+                    </form>
+                {% else %}
+                    <h2 class="section-title">Add New Classroom</h2>
+                    <form action="/admin/classroom/add" method="POST">
+                        <div class="form-group">
+                            <label for="room_number" class="form-label">Room Number</label>
+                            <input type="text" id="room_number" name="room_number" class="form-control" placeholder="e.g. 104" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="building" class="form-label">Building Block</label>
+                            <input type="text" id="building" name="building" class="form-control" placeholder="e.g. Ramanujan Block" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="floor" class="form-label">Floor</label>
+                                <input type="number" id="floor" name="floor" class="form-control" placeholder="e.g. 1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="capacity" class="form-label">Capacity</label>
+                                <input type="number" id="capacity" name="capacity" class="form-control" placeholder="e.g. 50" min="1" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="room_type" class="form-label">Room Type</label>
+                            <select id="room_type" name="room_type" class="form-control" required>
+                                <option value="Lecture Hall">Lecture Hall</option>
+                                <option value="Seminar Room">Seminar Room</option>
+                                <option value="Discussion Room">Discussion Room</option>
+                                <option value="Computer Lab">Computer Lab</option>
+                                <option value="Electronics Lab">Electronics Lab</option>
+                                <option value="Auditorium">Auditorium</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <span class="form-label">Amenities</span>
+                            <div class="filter-options">
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="projector" value="1">
+                                    <span>Projector Available</span>
+                                </label>
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="whiteboard" value="1" checked>
+                                    <span>Whiteboard Available</span>
+                                </label>
+                                <label class="checkbox-group">
+                                    <input type="checkbox" name="ac" value="1">
+                                    <span>AC Room</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Add Classroom</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB 3: TIMETABLE MANAGEMENT ==================== -->
+<div id="timetable" class="tab-content {% if active_tab == 'timetable' %}active{% endif %}">
+    <div class="dashboard-layout">
+        <!-- Timetable schedule grid -->
+        <div class="dashboard-column">
+            <div class="section-card">
+                <h2 class="section-title">Standard Recurring Schedules</h2>
+                {% if timetables %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Building Block</th>
+                                    <th>Day of Week</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Subject / Session Name</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for slot in timetables %}
+                                    <tr>
+                                        <td><strong>Room {{ slot.room_number }}</strong></td>
+                                        <td>{{ slot.building }}</td>
+                                        <td>{{ slot.day }}</td>
+                                        <td>{{ slot.start_time }}</td>
+                                        <td>{{ slot.end_time }}</td>
+                                        <td>{{ slot.subject }}</td>
+                                        <td>
+                                            <a href="/admin/timetable/delete/{{ slot.timetable_id }}" class="btn btn-danger btn-sm confirm-delete">Delete</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p style="color: var(--text-muted);">No class schedules registered in the database yet.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Add Timetable Form -->
+        <div class="dashboard-sidebar">
+            <div class="section-card">
+                <h2 class="section-title">Add Timetable Entry</h2>
+                <form action="/admin/timetable/add" method="POST">
+                    <div class="form-group">
+                        <label for="t_room_id" class="form-label">Select Classroom</label>
+                        <select id="t_room_id" name="room_id" class="form-control" required>
+                            {% for room in classrooms %}
+                                <option value="{{ room.room_id }}">Room {{ room.room_number }} ({{ room.building }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="t_day" class="form-label">Day of the Week</label>
+                        <select id="t_day" name="day" class="form-control" required>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="t_start_time" class="form-label">Start Time</label>
+                            <input type="time" id="t_start_time" name="start_time" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="t_end_time" class="form-label">End Time</label>
+                            <input type="time" id="t_end_time" name="end_time" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="t_subject" class="form-label">Class Subject / Purpose</label>
+                        <input type="text" id="t_subject" name="subject" class="form-control" placeholder="e.g. Algorithms Lecture" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Add Timetable Slot</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB 4: REGISTERED STUDENTS LIST ==================== -->
+<div id="students" class="tab-content {% if active_tab == 'students' %}active{% endif %}">
+    <div class="section-card">
+        <h2 class="section-title">Student Directory</h2>
+        {% if students %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Student Email</th>
+                            <th>Role Status</th>
+                            <th>Total Bookings Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                            <tr>
+                                <td>#{{ student.user_id }}</td>
+                                <td><strong>{{ student.name }}</strong></td>
+                                <td>{{ student.email }}</td>
+                                <td>
+                                    <span class="user-badge" style="background-color: #f1f5f9; color: #475569;">
+                                        {{ student.role | title }}
+                                    </span>
+                                </td>
+                                <td>{{ student.total_bookings }} Bookings</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted);">No student accounts have registered yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

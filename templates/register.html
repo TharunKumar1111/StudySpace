@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - StudySpace{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="card" id="register-card">
+        <h2 class="page-title" style="text-align: center; margin-bottom: 0.5rem;">Create Account</h2>
+        <p class="page-subtitle" style="text-align: center; margin-bottom: 2rem;">Join StudySpace to find and book rooms instantly.</p>
+        
+        <form action="/register" method="POST">
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="Enter your full name" required autocomplete="name">
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Enter college email" required autocomplete="email">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Create password" required autocomplete="new-password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="role" class="form-label">Register As</label>
+                    <select id="role" name="role" class="form-control" required>
+                        <option value="student">Student</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create Account</button>
+        </form>
+        
+        <div class="auth-footer">
+            Already have an account? <a href="/login">Sign in here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

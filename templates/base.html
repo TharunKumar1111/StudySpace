@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StudySpace - Find, Book, Study{% endblock %}</title>
+    <!-- Favicon placeholder (or custom emoji favicon) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏫</text></svg>">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar" id="app-navbar">
+        <div class="navbar-container">
+            <a href="/" class="nav-logo">
+                🏫 Study<span>Space</span>
+            </a>
+            
+            <ul class="nav-menu">
+                {% if session.user_id %}
+                    {% if session.role == 'admin' %}
+                        <li class="nav-item {% if active_page == 'admin_dashboard' %}active{% endif %}">
+                            <a href="/admin_dashboard">Admin Dashboard</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                            <a href="/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item {% if active_page == 'classrooms' %}active{% endif %}">
+                            <a href="/classrooms">Find Rooms</a>
+                        </li>
+                        <li class="nav-item {% if active_page == 'history' %}active{% endif %}">
+                            <a href="/history">My Bookings</a>
+                        </li>
+                        <li class="nav-item {% if active_page == 'profile' %}active{% endif %}">
+                            <a href="/profile">Profile</a>
+                        </li>
+                    {% endif %}
+                    
+                    <div class="nav-user">
+                        <span class="user-badge">{{ session.name }} ({{ session.role | title }})</span>
+                        <a href="/logout" class="btn btn-outline btn-sm">Logout</a>
+                    </div>
+                {% else %}
+                    <li class="nav-item {% if active_page == 'login' %}active{% endif %}">
+                        <a href="/login">Login</a>
+                    </li>
+                    <li class="nav-item {% if active_page == 'register' %}active{% endif %}">
+                        <a href="/register" class="btn btn-primary btn-sm" style="color: #ffffff;">Register</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'error' else 'danger' }}">
+                            {% if category == 'success' %}
+                                <span>✔</span>
+                            {% elif category == 'danger' or category == 'error' %}
+                                <span>✘</span>
+                            {% else %}
+                                <span>ℹ</span>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Child Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 StudySpace. Designed with ♥ for student convenience. Find. Book. Study.</p>
+        </div>
+    </footer>
+
+    <!-- Main Script -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

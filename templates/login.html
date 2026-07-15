@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - StudySpace{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="card" id="login-card" style="position: relative;">
+        <!-- Brand Header -->
+        <h2 class="page-title" style="text-align: center; margin-bottom: 0.25rem; font-size: 1.8rem; color: var(--primary);">
+            StudySpace
+        </h2>
+        <p class="page-subtitle" style="text-align: center; margin-bottom: 1.5rem; font-size: 0.9rem;">
+            Smart Classroom Availability & Booking System
+        </p>
+        
+        <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 1.5rem;">
+        
+        <h3 style="text-align: center; margin-bottom: 1.5rem; font-weight: 600; color: var(--text-main);">
+            Student Login
+        </h3>
+        
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email" required autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; font-weight: 600;">Login</button>
+        </form>
+        
+        <!-- Auth Navigation Footer -->
+        <div class="auth-footer" style="margin-top: 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 0.6rem;">
+            <div>
+                New student? <a href="/register" style="color: var(--primary); font-weight: 600;">Register here</a>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px dashed var(--border); margin: 0.5rem 0;">
+            
+            <!-- Quick Login Helpers for Interviews / Testing -->
+            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                <div style="margin-bottom: 0.4rem; font-weight: 600;">Quick Autofill Accounts:</div>
+                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="autofill('student@studyspace.com', 'student123')" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+                        Student Demo
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="autofill('admin@studyspace.com', 'admin123')" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+                        Admin Demo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developed By Footer inside Card -->
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center; font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+            Developed by <span style="color: var(--text-main); font-weight: 600;">Tharun</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Javascript helper to quickly autofill demo credentials during interviews
+    function autofill(email, password) {
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = password;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Room {{ classroom.room_number }} - StudySpace{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Book Classroom: Room {{ classroom.room_number }}</h1>
+        <p class="page-subtitle">{{ classroom.building }} — Floor {{ classroom.floor }}</p>
+    </div>
+    <a href="/classrooms" class="btn btn-outline">← Back to Classrooms</a>
+</div>
+
+<div class="dashboard-layout">
+    <!-- Left: Booking Form -->
+    <div class="dashboard-column">
+        <div class="section-card">
+            <h2 class="section-title">Schedule Request</h2>
+            
+            {% if booking_error %}
+                <div class="alert alert-danger">
+                    <span>✘</span> {{ booking_error }}
+                </div>
+            {% endif %}
+            
+            {% if available_until %}
+                <div class="availability-indicator">
+                    🟢 Room is available until <strong>{{ available_until }}</strong> today.
+                </div>
+            {% endif %}
+
+            <form action="/book/{{ classroom.room_id }}" method="POST" id="booking-form">
+                <div class="form-group">
+                    <label for="booking_date" class="form-label">Booking Date</label>
+                    <input type="date" id="booking_date" name="booking_date" class="form-control" value="{{ form_data.booking_date or '' }}" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start_time" class="form-label">Start Time (HH:MM)</label>
+                        <input type="time" id="start_time" name="start_time" class="form-control" value="{{ form_data.start_time or '' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end_time" class="form-label">End Time (HH:MM)</label>
+                        <input type="time" id="end_time" name="end_time" class="form-control" value="{{ form_data.end_time or '' }}" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="purpose" class="form-label">Purpose of Booking</label>
+                    <textarea id="purpose" name="purpose" class="form-control" rows="3" placeholder="e.g., Coding placement preparation, Group project discussion, etc." required>{{ form_data.purpose or '' }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Confirm Booking Request</button>
+            </form>
+        </div>
+        
+        <!-- Alternatives suggestion list when double booking is prevented -->
+        {% if alternatives %}
+            <div class="suggestions-box">
+                <div class="suggestions-title">💡 Alternative Available Rooms (Same Time Slots)</div>
+                <p style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-muted);">
+                    The following rooms are free on <strong>{{ form_data.booking_date }}</strong> between <strong>{{ form_data.start_time }}</strong> and <strong>{{ form_data.end_time }}</strong>:
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for alt in alternatives %}
+                        <div class="suggestion-item">
+                            <div>
+                                <strong style="color: var(--primary);">Room {{ alt.room_number }}</strong> 
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">({{ alt.building }}, Capacity: {{ alt.capacity }} seats)</span>
+                            </div>
+                            <a href="/book/{{ alt.room_id }}?date={{ form_data.booking_date }}&start={{ form_data.start_time }}&end={{ form_data.end_time }}" class="btn btn-secondary btn-sm">
+                                Book This Instead
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right: Room Specification and Calendar schedules -->
+    <div class="dashboard-sidebar">
+        <div class="section-card">
+            <h2 class="section-title">Room Specifications</h2>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
+                <div class="room-detail-row">
+                    <span class="room-detail-label">Building</span>
+                    <span class="room-detail-value">{{ classroom.building }}</span>
+                </div>
+                <div class="room-detail-row">
+                    <span class="room-detail-label">Floor</span>
+                    <span class="room-detail-value">{{ classroom.floor }}</span>
+                </div>
+                <div class="room-detail-row">
+                    <span class="room-detail-label">Capacity</span>
+                    <span class="room-detail-value">{{ classroom.capacity }} Seats</span>
+                </div>
+                <div class="room-detail-row">
+                    <span class="room-detail-label">Room Type</span>
+                    <span class="room-detail-value">{{ classroom.room_type }}</span>
+                </div>
+                <hr style="border: 0; border-top: 1px solid var(--border);">
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Amenities Available:</div>
+                <div class="room-amenities">
+                    {% if classroom.projector %}
+                        <span class="amenity-badge">📹 Projector</span>
+                    {% endif %}
+                    {% if classroom.whiteboard %}
+                        <span class="amenity-badge">📋 Whiteboard</span>
+                    {% endif %}
+                    {% if classroom.ac %}
+                        <span class="amenity-badge">❄ Air Conditioning</span>
+                    {% else %}
+                        <span class="amenity-badge">💨 Natural AC (AC not available)</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title">Today's Class Timetable</h2>
+            {% if today_timetable %}
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for class in today_timetable %}
+                        <div style="font-size: 0.9rem; padding: 0.5rem; background-color: var(--bg-main); border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
+                            <div style="font-weight: 600; color: var(--text-main);">{{ class.subject }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">🕒 {{ class.start_time }} - {{ class.end_time }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="font-size: 0.9rem; color: var(--text-muted);">No standard classes scheduled for this classroom today.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

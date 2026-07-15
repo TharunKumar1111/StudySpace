@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Classrooms - StudySpace{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Classrooms & Study Areas</h1>
+        <p class="page-subtitle">Search, filter, and discover available spaces across the campus.</p>
+    </div>
+</div>
+
+<div class="search-filter-layout">
+    <!-- Sidebar Filters (GET request form) -->
+    <aside class="filter-sidebar">
+        <form action="/classrooms" method="GET" id="search-filter-form">
+            <div class="filter-section">
+                <label for="room_number" class="filter-section-title">Search Room Number</label>
+                <input type="text" id="room_number" name="room_number" class="form-control" placeholder="e.g. 101" value="{{ filters.room_number or '' }}">
+            </div>
+            
+            <div class="filter-section">
+                <label for="building" class="filter-section-title">Building Block</label>
+                <select id="building" name="building" class="form-control">
+                    <option value="">All Buildings</option>
+                    {% for bld in buildings %}
+                        <option value="{{ bld }}" {% if filters.building == bld %}selected{% endif %}>{{ bld }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-section">
+                <label for="room_type" class="filter-section-title">Room Type</label>
+                <select id="room_type" name="room_type" class="form-control">
+                    <option value="">All Types</option>
+                    {% for r_type in room_types %}
+                        <option value="{{ r_type }}" {% if filters.room_type == r_type %}selected{% endif %}>{{ r_type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <label for="min_capacity" class="filter-section-title">Minimum Capacity</label>
+                <input type="number" id="min_capacity" name="min_capacity" class="form-control" placeholder="e.g. 30" min="1" value="{{ filters.min_capacity or '' }}">
+            </div>
+            
+            <div class="filter-section">
+                <span class="filter-section-title">Amenities</span>
+                <div class="filter-options">
+                    <label class="checkbox-group">
+                        <input type="checkbox" name="projector" value="1" {% if filters.projector == '1' %}checked{% endif %}>
+                        <span>Projector Available</span>
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" name="ac" value="1" {% if filters.ac == '1' %}checked{% endif %}>
+                        <span>Air Conditioned (AC)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <span class="filter-section-title">Availability Status</span>
+                <div class="filter-options">
+                    <label class="checkbox-group">
+                        <input type="checkbox" name="status" value="Available" {% if filters.status == 'Available' %}checked{% endif %}>
+                        <span>Available Only</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Apply Filters</button>
+                <a href="/classrooms" class="btn btn-outline" style="padding: 0.6rem 0.8rem;">Clear</a>
+            </div>
+        </form>
+    </aside>
+
+    <!-- Results Area -->
+    <div class="results-container">
+        {% if classrooms %}
+            <div class="classroom-grid">
+                {% for room in classrooms %}
+                    <div class="room-card" id="room-card-{{ room.room_id }}">
+                        <div class="room-card-header">
+                            <div>
+                                <div class="room-number-display">Room {{ room.room_number }}</div>
+                                <div class="room-building-display">{{ room.building }}, Floor {{ room.floor }}</div>
+                            </div>
+                            <span class="badge badge-{{ room.status.lower() }}">
+                                {{ room.status }}
+                            </span>
+                        </div>
+                        
+                        <div class="room-card-body">
+                            <div class="room-detail-row">
+                                <span class="room-detail-label">Capacity</span>
+                                <span class="room-detail-value">{{ room.capacity }} Seats</span>
+                            </div>
+                            
+                            <div class="room-detail-row">
+                                <span class="room-detail-label">Type</span>
+                                <span class="room-detail-value">{{ room.room_type }}</span>
+                            </div>
+                            
+                            <div class="room-amenities">
+                                {% if room.projector %}
+                                    <span class="amenity-badge">📹 Projector</span>
+                                {% endif %}
+                                {% if room.whiteboard %}
+                                    <span class="amenity-badge">📋 Whiteboard</span>
+                                {% endif %}
+                                {% if room.ac %}
+                                    <span class="amenity-badge">❄ AC</span>
+                                {% else %}
+                                    <span class="amenity-badge">💨 Non-AC</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="room-card-footer">
+                            {% if room.status == 'Available' %}
+                                <a href="/book/{{ room.room_id }}" class="btn btn-primary" style="width: 100%;">Book Classroom</a>
+                            {% else %}
+                                <button class="btn btn-outline" style="width: 100%; cursor: not-allowed;" disabled>
+                                    {{ room.status }}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="section-card">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <div class="empty-state-title">No Classrooms Found</div>
+                    <p>No rooms match your specific search criteria. Try loosening your filters or changing search keywords.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - StudySpace{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Welcome back, {{ session.name }}!</h1>
+        <p class="page-subtitle">Here is a summary of your classroom bookings and today's availability.</p>
+    </div>
+    <a href="/classrooms" class="btn btn-primary">
+        <span>🔍</span> Find & Book a Classroom
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.total_bookings }}</div>
+            <div class="stat-label">Total Bookings</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon secondary">⏳</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.upcoming_bookings }}</div>
+            <div class="stat-label">Upcoming Bookings</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">🟢</div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.available_classrooms }}</div>
+            <div class="stat-label">Available Rooms Now</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-layout">
+    <!-- Left Column: Upcoming & Recent Bookings -->
+    <div class="dashboard-column">
+        <div class="section-card">
+            <h2 class="section-title">Upcoming Bookings</h2>
+            {% if upcoming_list %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Room Number</th>
+                                <th>Building</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in upcoming_list %}
+                                <tr>
+                                    <td><strong>{{ booking.room_number }}</strong></td>
+                                    <td>{{ booking.building }}</td>
+                                    <td>{{ booking.booking_date }}</td>
+                                    <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ booking.status.lower() }}">
+                                            {{ booking.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/bookings/cancel/{{ booking.booking_id }}?redirect=dashboard" class="btn btn-danger btn-sm confirm-cancel">Cancel</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📅</div>
+                    <div class="empty-state-title">No Upcoming Bookings</div>
+                    <p>You have no active or approved bookings scheduled for the future.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="section-card">
+            <h2 class="section-title">Recent Activity History</h2>
+            {% if recent_activity %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Room</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Purpose</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_activity %}
+                                <tr>
+                                    <td><strong>{{ item.room_number }}</strong></td>
+                                    <td>{{ item.booking_date }}</td>
+                                    <td>{{ item.start_time }} - {{ item.end_time }}</td>
+                                    <td>{{ item.purpose }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ item.status.lower() }}">
+                                            {{ item.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📜</div>
+                    <div class="empty-state-title">No Activity History</div>
+                    <p>Your recent booking logs will be displayed here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Quick Tips & Info -->
+    <div class="dashboard-sidebar">
+        <div class="section-card">
+            <h2 class="section-title">Campus Guide</h2>
+            <div style="font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <p>📍 <strong>Ramanujan Block</strong> is equipped with smart displays, suitable for technical seminars.</p>
+                <p>📍 <strong>Aryabhata Block</strong> houses silent cabins for group discussions and research.</p>
+                <p>📍 <strong>Kalam Labs Block</strong> contains specialized developer workstations.</p>
+                <hr style="border: 0; border-top: 1px solid var(--border);">
+                <h4 style="font-weight: 600; color: var(--text-main);">Booking Rules:</h4>
+                <ul style="padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                    <li>Bookings are approved or rejected by Admins.</li>
+                    <li>Ensure you book at least 15 minutes before the start time.</li>
+                    <li>Double booking is automatically blocked by the system.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

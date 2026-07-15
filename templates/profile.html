@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - StudySpace{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Profile Settings</h1>
+        <p class="page-subtitle">Manage your credentials and personal info here.</p>
+    </div>
+</div>
+
+<div class="auth-wrapper" style="max-width: 600px; margin: 0 auto;">
+    <div class="card" id="profile-card">
+        <h2 class="section-title">Edit Details</h2>
+        
+        <form action="/profile" method="POST">
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" value="{{ user.email }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <input type="text" class="form-control" value="{{ user.role | title }}" style="background-color: var(--bg-main); cursor: not-allowed;" disabled>
+                <span class="form-text">User role cannot be changed. Please contact system admin.</span>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Change Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Leave blank to keep current password" autocomplete="new-password">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Profile Settings</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
